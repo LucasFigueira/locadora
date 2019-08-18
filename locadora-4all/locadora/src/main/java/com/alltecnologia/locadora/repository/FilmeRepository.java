@@ -36,4 +36,12 @@ public interface FilmeRepository extends JpaRepository<Filme, Integer>{
 			     "  WHERE  f.id_filme   = :id_filme", nativeQuery=true) 
 	public void updateUnidadeDisponivel(@Param("id_filme") Integer id_filme, @Param("disponivel") Integer disponivel);
 	
+	@Transactional
+	@Modifying
+	@Query(value="  UPDATE locadora.filme f           " + 
+			     "    SET  f.disponivel = :disponivel," +
+			     "         f.quantidade = :quantidade " +   
+			     "  WHERE  f.id_filme   = :id_filme", nativeQuery=true) 
+	public void updateQuantidadeDisponivel(@Param("id_filme") Integer id_filme, @Param("disponivel") Integer disponivel, @Param("quantidade") Integer quantidade);
+	
 }

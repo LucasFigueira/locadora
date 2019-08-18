@@ -23,7 +23,7 @@ public interface LocacaoRepository extends JpaRepository<Locacao, Integer>{
 	@Modifying
 	@Query(value="  UPDATE  locadora.locacao l                  " + 
 			     "     SET  l.data_devolucao   = :dataDevolucao " +   
-			     "   WHERE  l.titulo   = :codigoLocacao ", nativeQuery=true) 
+			     "   WHERE  l.codigo_locacao    = :codigoLocacao ", nativeQuery=true) 
 	public void dataDevolucao(@Param("dataDevolucao") Date dataDevolucao, @Param("codigoLocacao") Integer codigoLocacao);
 	
 }

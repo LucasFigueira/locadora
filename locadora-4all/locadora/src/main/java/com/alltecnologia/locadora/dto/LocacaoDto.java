@@ -1,29 +1,24 @@
 package com.alltecnologia.locadora.dto;
 
-import com.alltecnologia.locadora.model.Filme;
-import com.alltecnologia.locadora.model.User;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 public class LocacaoDto {
-	private Filme filme;
-	private User user;
+	
+	@NotBlank	
+	@Size(max = 100)
+	private String titulo;
+
+	public String getTitulo() {
+		return titulo;
+	}
+
+	public void setTitulo(String titulo) {
+		this.titulo = titulo;
+	}
+	
+	
  
 
-	public User getUser() {
-		return user;
-	}
-
-	public void setUser(User user) {
-		this.user = user;
-	}
-
-	public Filme getFilme() {
-		return filme;
-	}
-
-	public void setFilme(Filme filme) {
-		this.filme = filme;
-	}
-	
-	
 	
 }

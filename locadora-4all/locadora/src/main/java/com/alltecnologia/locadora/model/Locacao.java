@@ -99,6 +99,14 @@ public class Locacao implements Serializable {
 	public void setPrazo_devolucao(Date prazo_devolucao) {
 		this.prazo_devolucao = prazo_devolucao;
 	}
+
+	public String getTitulo() {
+		return titulo;
+	}
+
+	public void setTitulo(String titulo) {
+		this.titulo = titulo;
+	}
 	
 	
 	

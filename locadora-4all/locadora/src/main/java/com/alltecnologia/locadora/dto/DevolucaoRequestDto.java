@@ -1,17 +1,23 @@
 package com.alltecnologia.locadora.dto;
 
-import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Digits;
+
+import org.hibernate.validator.constraints.Range;
 
 public class DevolucaoRequestDto {
 	
-	@NotBlank
-	private String  titulo;
- 
-	public String getTitulo() {
-		return titulo;
+	@Digits(fraction = 0, integer = 6)
+	@Range(min=0,max=100000)
+	private Integer  idLocacao;
+
+	public Integer getIdLocacao() {
+		return idLocacao;
 	}
-	public void setTitulo(String titulo) {
-		this.titulo = titulo;
+
+	public void setIdLocacao(Integer idLocacao) {
+		this.idLocacao = idLocacao;
 	}
+	
+	
  
 }

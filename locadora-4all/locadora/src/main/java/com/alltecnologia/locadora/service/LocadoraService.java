@@ -6,6 +6,8 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -44,13 +46,20 @@ public class LocadoraService {
 	public LocadoraResponse addMovie(@RequestBody Filme filme) {
 		try {
 			
+			if(filme.getDisponivel() > filme.getQuantidade()) {
+				return createResponse(HttpStatus.OK.value(), "A quantidade de filmes disponíveis não pode ser maior que a quantidade total.");
+			}
+						
+			
 			Filme findFilme = filmeRp.findByTituloIgnoreCase(filme.getTitulo());
 			
-			if(findFilme != null) {
-				findFilme.setQuantidade(filme.getQuantidade()+1);
+			if(findFilme != null) { 
+				filmeRp.updateQuantidadeDisponivel(findFilme.getIdFilme(), findFilme.getDisponivel() + 1, findFilme.getQuantidade() + 1);
+				
+				return createResponse(HttpStatus.OK.value(), "A locadora já possui esse filme. A quantidade de cópias desse título foi atualizada.");
 			}else {
-				if(filme.getDisponivel() > filme.getQuantidade()) {
-					return createResponse(HttpStatus.OK.value(), "A quantidade de filmes disponíveis não pode ser maior que a quantidade total.");
+				if(filme.getDisponivel() != filme.getQuantidade()) {
+					return createResponse(HttpStatus.OK.value(), "Ao adicionar um novo filme, a quantidade disponível deve ser igual a quantidade total.");
 				}
 				filmeRp.save(filme);
 			} 
@@ -81,40 +90,47 @@ public class LocadoraService {
 	}
 	
 	
-	public AluguelResponseDto alugarFilme(LocacaoDto locacaoDto) {
-	Locacao locacao = null;
+	public AluguelResponseDto alugarFilme(LocacaoDto locacaoRequest) {
+		Locacao locacao = null;
 	
-	try { 
-		 Filme filme = filmeRp.findByTituloIgnoreCase(locacaoDto.getFilme().getTitulo());
-		 User user = userRp.findByIdUser(locacaoDto.getUser().getIdUser());
+		try { 
+			 //Obtendo usuário logado
+			 User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();  
+				 
+			 Filme filmeLocacao = filmeRp.findByTituloIgnoreCase(locacaoRequest.getTitulo()); 
+			
+			 if(user == null) {
+				String msg = messages.get("locadora.validation.findByIdUser");
+				throw new LocadoraBadRequestException(msg);			
+			 } 
+			 if(filmeLocacao == null ) {
+				 return createResponse(HttpStatus.OK.value(), "Filme não existente na locadora.", null); 
+			 }
+			 if(filmeLocacao.getDisponivel() == 0) {
+				 return createResponse(HttpStatus.OK.value(), "Não há unidade disponível para esse título.", null);
+			 }else {				 
+				 filmeRp.updateUnidadeDisponivel(filmeLocacao.getIdFilme(), filmeLocacao.getDisponivel() - 1);
+				 locacao = createLocacao(filmeLocacao.getIdFilme(),filmeLocacao.getTitulo(), user.getIdUser(), user.getName());
+				 locacaoRp.save(locacao);
+			 }
+	 
+		}catch(Exception e) {
+			String msg = messages.get("locadora.validation.alugarFilme");
+			throw new LocadoraBadRequestException(msg);					
+		} 
 		
-		 if(user == null) {
-			String msg = messages.get("locadora.validation.findByIdUser");
-			throw new LocadoraBadRequestException(msg);			
-		 } 
-		 
-		 if(filme.getDisponivel() == 0) {
-			 return createResponse(HttpStatus.OK.value(), "Nenhuma unidade disponível para esse título.", null);
-		 }else {				 
-			 filmeRp.updateUnidadeDisponivel(filme.getIdFilme(), filme.getDisponivel() - 1);
-			 locacao = createLocacao(filme.getIdFilme(), user.getIdUser(), user.getName());
-			 locacaoRp.save(locacao);
-		 }
- 
-	}catch(Exception e) {
-		String msg = messages.get("locadora.validation.alugarFilme");
-		throw new LocadoraBadRequestException(msg);					
-	} 
-		
-		return createResponse(HttpStatus.OK.value(), "Filme alugado com sucesso", locacao.getDataDevolucao());
+		return createResponse(HttpStatus.OK.value(), "Filme alugado com sucesso", locacao.getPrazo_devolucao());
 	}
 	
 	
 	public LocadoraResponse devolverFilme(DevolucaoRequestDto devolucaoRequest) {
 		Date dataDevolucao = null;
 		try {  
-		    Locacao locacao = locacaoRp.findByTituloIgnoreCase(devolucaoRequest.getTitulo() ); 
+		    Locacao locacao = locacaoRp.findByCodigoLocacao(devolucaoRequest.getIdLocacao()); 
 		 
+		    if(locacao == null) {
+		    	return createResponse(HttpStatus.BAD_REQUEST.value(), "Locação não encontrada através da identificação: " + devolucaoRequest.getIdLocacao());
+		    }
 			if(locacao.getDataDevolucao() != null) {
 				return createResponse(HttpStatus.OK.value(), "O filme já foi devolvido.");
 			}
@@ -122,6 +138,7 @@ public class LocadoraService {
 			dataDevolucao = cal.getTime(); 
 			
 			locacao.setDataDevolucao(dataDevolucao);
+			
 			
 			locacaoRp.dataDevolucao(dataDevolucao, locacao.getCodigoLocacao());
 			filmeRp.updateUnidadeDisponivel(locacao.getFilme().getIdFilme(), locacao.getFilme().getDisponivel() + 1);
@@ -153,14 +170,14 @@ public class LocadoraService {
 		return locadoraResponse;
 	}
 	
-	public Locacao createLocacao(Integer idFilme, Integer idUser, String userName) {
+	public Locacao createLocacao(Integer idFilme,String titulo, Integer idUser, String userName) {
 		Locacao locacao = new Locacao();
 	    Filme filme = new Filme();
 	    User user = new User();
 		Calendar cal = Calendar.getInstance(); 
 		Date startingDate = cal.getTime(); 
 		locacao.setDataEmprestimo(startingDate);
-		
+		locacao.setTitulo(titulo);
 		//Adiciono 3 dias na data de hoje para devolução do filme
 		cal.add(Calendar.DATE, +3);		
 		locacao.setPrazo_devolucao(cal.getTime());

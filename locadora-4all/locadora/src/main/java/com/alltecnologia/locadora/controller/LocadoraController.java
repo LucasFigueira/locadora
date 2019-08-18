@@ -2,7 +2,10 @@ package com.alltecnologia.locadora.controller;
 
 import java.util.List;
 
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,9 +20,10 @@ import com.alltecnologia.locadora.dto.LocadoraResponse;
 import com.alltecnologia.locadora.model.Filme;
 import com.alltecnologia.locadora.service.LocadoraService;
  
+ 
 
 @RestController
-@RequestMapping("/locadora")
+@RequestMapping(value = "/locadora", consumes = MediaType.APPLICATION_JSON_VALUE)
 public class LocadoraController {
 	
 	@Autowired
@@ -33,8 +37,8 @@ public class LocadoraController {
 	 * @return response 201 (CREATED) - Conseguiu adicionar um filme
 	 */
 	@PreAuthorize("hasAnyRole('ADMIN')")
-	@PostMapping("/adicionar")  
-	public LocadoraResponse addMovie(@RequestBody Filme filme) { 
+	@PostMapping(value = "/adicionar", consumes = MediaType.APPLICATION_JSON_VALUE, produces=  MediaType.APPLICATION_JSON_VALUE)    
+	public LocadoraResponse addMovie(@RequestBody @Valid  Filme filme) { 
 		
 		return locadoraService.addMovie(filme);
 	}
@@ -54,14 +58,14 @@ public class LocadoraController {
 	/**
 	 * Permite alugar um filme
 	 * 
-	 * @param  LocacaoDto: contém usuário e o filme que pretende alugar
+	 * @param  LocacaoDto: contém o titulo do filme
 	 * @return response 200 (OK) - Conseguiu Alugar um filme
 	 */
 	@PreAuthorize("hasAnyRole('USER','ADMIN')")
-	@PostMapping("/alugar")  
-	public LocadoraResponse alugarFilme(@RequestBody LocacaoDto locacaoDto) { 
-		
-		return locadoraService.alugarFilme(locacaoDto);
+	@PostMapping(value= "/alugar", consumes = MediaType.APPLICATION_JSON_VALUE, produces=  MediaType.APPLICATION_JSON_VALUE)  
+	public LocadoraResponse alugarFilme(@RequestBody @Valid LocacaoDto locacaoRequest) { 
+		 
+		return locadoraService.alugarFilme(locacaoRequest);
 	}
 	
 	
@@ -72,8 +76,8 @@ public class LocadoraController {
 	 * @return response 200 (OK) - Conseguiu devolver o filme
 	 */
 	@PreAuthorize("hasAnyRole('USER','ADMIN')")
-	@PutMapping("/devolver")  
-	public LocadoraResponse devolverFilme(@RequestBody  DevolucaoRequestDto devolucaoRequest) {
+	@PutMapping(value ="/devolver", consumes = MediaType.APPLICATION_JSON_VALUE, produces=  MediaType.APPLICATION_JSON_VALUE)    
+	public LocadoraResponse devolverFilme(@RequestBody  @Valid DevolucaoRequestDto devolucaoRequest) {
 		return locadoraService.devolverFilme(devolucaoRequest);
 	}
 
