@@ -6,29 +6,31 @@ import java.util.Date;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.ForeignKey;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
 import javax.persistence.OneToOne;
+import javax.persistence.SequenceGenerator;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 @Entity
+@SequenceGenerator(name = "LOCACAO_SEQ", sequenceName = "LOCACAO_SEQ", initialValue = 1, allocationSize = 1)
 public class Locacao implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	@GeneratedValue(strategy=GenerationType.IDENTITY, generator = "LOCACAO_SEQ")
 	private Integer codigoLocacao;
 	
-	@OneToOne(cascade= CascadeType.REFRESH)
-	 @JoinColumns({
-        @JoinColumn( name="user_id", referencedColumnName="user_id"),
-        @JoinColumn( name="user_name", referencedColumnName="name") 
-    })
+	@OneToOne(cascade= CascadeType.REFRESH) 
+	@JoinColumns(foreignKey = @ForeignKey(name = "FK_USER"), value = {
+			@JoinColumn(referencedColumnName = "user_id", name = "user_id"),
+			@JoinColumn(referencedColumnName = "name", name = "name") })
 	private User user;
 	
 	@OneToOne

@@ -6,6 +6,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotBlank;
@@ -16,10 +17,11 @@ import org.hibernate.validator.constraints.Range;
  
 @Entity
 @Table(name ="filme")
+@SequenceGenerator(name = "FILME_SEQ", sequenceName = "FILME_SEQ", initialValue = 1, allocationSize = 1)
 public class Filme implements Serializable {
   
 	private static final long serialVersionUID = 1L;
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.AUTO, generator = "FILME_SEQ")
     @Id
 	private Integer idFilme;
 	

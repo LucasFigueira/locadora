@@ -1,5 +1,7 @@
 package com.alltecnologia.locadora.controller;
  
+import javax.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,7 +29,7 @@ public class AdminController {
 	 */
 	@PreAuthorize("hasAnyRole('ADMIN')")
 	@PostMapping("/adicionar") 
-	public LocadoraResponse addUserByAdmin(@RequestBody User user) {
+	public LocadoraResponse addUserByAdmin(@RequestBody @Valid User user) {
 	 
 		return autenticacaoService.addUserByAdmin(user);
 	} 
